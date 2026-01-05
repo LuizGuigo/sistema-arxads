@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARXADS CRM </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { background-color: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .text-gold { color: #FFD700; }
+        .btn-gold { background-color: #FFD700; color: #000; font-weight: 900; transition: 0.3s; cursor: pointer; border: none; }
+        .btn-gold:hover { background-color: #e6c200; transform: scale(1.02); }
+        .input-dark { background: #111; border: 1px solid #222; color: #fff; padding: 12px; border-radius: 8px; outline: none; font-size: 13px; }
+        .menu-item { cursor: pointer; border-left: 3px solid transparent; transition: 0.3s; color: #555; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .menu-item.active { border-left: 3px solid #FFD700; background: #0a0a0a; color: #FFD700; }
+        
+        #modalFechamento, #telaComemoracao, #modalAdmin { 
+            display: none; position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; 
+        }
+        #modalFechamento, #modalAdmin { background: rgba(0,0,0,0.95); }
+        #telaComemoracao { background: #000; flex-direction: column; text-align: center; z-index: 200; }
+
+        #cotaPopup { 
+            display: none; position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); z-index: 500; 
+            background: rgba(0,0,0,0.98); border: 3px solid #FFD700; 
+            padding: 40px; border-radius: 20px; text-align: center; 
+            box-shadow: 0 0 100px rgba(255, 215, 0, 0.4); width: 450px; 
+            animation: popShow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popShow { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+        .kanban-col { background: #0a0a0a; border: 1px solid #111; border-radius: 15px; min-width: 280px; height: calc(100vh - 200px); overflow-y: auto; }
+        .lead-card { background: #151515; border: 1px solid #222; padding: 15px; border-radius: 12px; margin-bottom: 12px; }
+        #mainDashboard, #meetingLogin { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="vendorLogin" class="h-screen flex items-center justify-center bg-black z-[5000] fixed inset-0">
+        <div class="bg-zinc-950 p-12 rounded-[40px] border border-zinc-900 w-full max-w-sm text-center shadow-2xl">
+            <h1 class="text-5xl font-black text-gold italic mb-2 uppercase tracking-tighter">ARXADS</h1>
+            <p class="text-zinc-600 text-[10px] uppercase tracking-[0.3em] mb-10 font-bold">Operation System</p>
+            <div class="space-y-4 flex flex-col text-left">
+                <input type="text" id="loginUser" class="input-dark w-full" placeholder="Usuário">
+                <input type="password" id="loginPass" class="input-dark w-full" placeholder="Senha">
+                <button onclick="validaLogin()" class="btn-gold py-5 rounded-2xl mt-6 uppercase text-xs">Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainDashboard" class="h-screen flex">
+        <aside class="w-64 bg-zinc-950 border-r border-zinc-900 flex flex-col">
+            <div class="p-8 text-gold font-black italic text-xl tracking-tighter">ARXADS CRM</div>
+            <nav class="flex-1 px-4 space-y-2">
+                <div onclick="showSection('crm-list')" id="nav-crm-list" class="menu-item active p-4 rounded-lg flex items-center gap-3">📅 Agendamentos</div>
+                <div onclick="showSection('pipeline')" id="nav-pipeline" class="menu-item p-4 rounded-lg flex items-center gap-3">📊 Funil (CRM)</div>
+                <div onclick="showSection('ranking')" id="nav-ranking" class="menu-item p-4 rounded-lg flex items-center gap-3">🏆 Rankings Equipe</div>
+                <div onclick="abrirModoReuniao()" class="menu-item p-4 rounded-lg flex items-center gap-3 text-white bg-zinc-900 mt-10">🎬 MODO REUNIÃO</div>
+            </nav>
+            <div class="p-4 border-t border-zinc-900">
+                <button onclick="showAdminModal()" class="text-[10px] text-zinc-600 uppercase font-bold hover:text-gold w-full text-left">⚙️ Painel do Dono</button>
+            </div>
+        </aside>
+
+        <main class="flex-1 relative overflow-hidden bg-black">
+            <section id="sec-crm-list" class="p-10 overflow-y-auto h-full">
+                <h1 class="text-3xl font-black mb-8 italic uppercase text-gold">Cadastrar Lead</h1>
+                <div class="bg-zinc-950 p-8 rounded-[30px] border border-zinc-900 mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <input type="text" id="leadName" placeholder="Cliente" class="input-dark">
+                    <input type="text" id="leadNicho" placeholder="Nicho" class="input-dark">
+                    <input type="text" id="leadProt" placeholder="Protocolo" class="input-dark font-mono">
+                    <input type="datetime-local" id="leadDate" class="input-dark text-zinc-500">
+                    <select id="sdrSelect" class="input-dark sdr-list-source"></select>
+                    <select id="closerSelect" class="input-dark closer-list-source"></select>
+                    <select id="cotaType" class="input-dark col-span-2">
+                        <option value="Cota 1: 50% de desconto no SETUP">Cota Bonificada: 50% SETUP</option>
+                        <option value="Cota 2: 50% de desconto total">Cota Bonificada: 50% TOTAL</option>
+                    </select>
+                    <button onclick="salvarLead()" class="btn-gold rounded-xl font-black uppercase text-sm col-span-4 py-4">Agendar Agora</button>
+                </div>
+                <div class="rounded-2xl border border-zinc-900 overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-zinc-900 text-zinc-500 uppercase text-[9px]">
+                            <tr><th class="p-4">Data/Hora</th><th class="p-4">Cliente</th><th class="p-4">Nicho</th><th class="p-4">Status Reunião</th></tr>
+                        </thead>
+                        <tbody id="crmBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="sec-pipeline" class="hidden p-8 h-full">
+                <div class="flex gap-4 overflow-x-auto pb-4 h-full" id="pipelineContainer"></div>
+            </section>
+
+            <section id="sec-ranking" class="hidden p-10 h-full overflow-y-auto">
+                <h2 class="text-gold font-black uppercase mb-4 tracking-widest text-xs">Top Performance Closers (Vendas)</h2>
+                <div id="rankingClosers" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10"></div>
+                
+                <h2 class="text-gold font-black uppercase mb-4 tracking-widest text-xs">Top Performance SDRs (Agendamentos)</h2>
+                <div id="rankingSDRs" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+            </section>
+
+            <section id="sec-apresentacao_real" class="hidden h-full flex flex-col bg-black relative">
+                <div class="p-4 bg-zinc-950 border-b border-zinc-900 flex justify-between items-center px-10">
+                    <button onclick="changePage(-1)" class="text-gold text-4xl">◀</button>
+                    <span class="font-black text-xs uppercase text-zinc-500">Slide <span id="pageNumDisplay">1</span></span>
+                    <button onclick="changePage(1)" class="text-gold text-4xl">▶</button>
+                    <button onclick="abrirFechamento()" class="bg-white text-black px-8 py-2 rounded-full font-black text-xs uppercase">Fechar Venda</button>
+                </div>
+                <div class="flex-1 overflow-auto p-4 flex justify-center bg-black relative">
+                    <canvas id="pdfCanvas"></canvas>
+                    <div id="cotaPopup">
+                        <h3 class="text-zinc-500 text-[10px] uppercase font-bold mb-2">Bonificação Especial Liberada</h3>
+                        <h2 id="cotaTexto" class="text-3xl font-black text-gold italic uppercase mb-8 leading-tight"></h2>
+                        <button onclick="document.getElementById('cotaPopup').style.display='none'" class="btn-gold px-12 py-4 rounded-full text-xs uppercase">Aplicar Benefício</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="telaComemoracao">
+        <h1 class="text-8xl font-black italic uppercase text-white tracking-tighter mb-4">TEMOS UM NOVO<br><span class="text-gold">PARCEIRO!</span></h1>
+        <div class="bg-zinc-900 p-8 rounded-2xl border border-gold/30 mb-10 max-w-2xl">
+            <p class="text-gold font-bold text-3xl uppercase italic mb-2">🚀 GARANTIA ARXADS</p>
+            <p class="text-white text-xl uppercase font-light">
+                Venda em até <span class="font-black text-gold">43 DIAS</span><br>
+                ou não pague nosso plano de marketing.
+            </p>
+        </div>
+        <button onclick="voltarAoPainel()" class="btn-gold px-16 py-5 rounded-full text-xs uppercase">Voltar ao Painel</button>
+    </div>
+
+    <div id="modalFechamento">
+        <div class="bg-zinc-950 p-10 rounded-[40px] border border-zinc-800 w-full max-w-lg">
+            <h2 class="text-2xl font-black text-gold mb-8 uppercase text-center">Contrato Final</h2>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" id="f_setup" placeholder="Setup (R$)" class="input-dark w-full">
+                    <input type="number" id="f_mensal" placeholder="Mensal (R$)" class="input-dark w-full">
+                    <select id="f_vendedor" class="input-dark w-full closer-list-source"></select>
+                    <select id="f_sdr" class="input-dark w-full sdr-list-source"></select>
+                </div>
+                <button onclick="salvarResultado('FECHOU')" class="w-full bg-green-600 py-6 rounded-2xl font-black uppercase mt-4">Venda Realizada! ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="meetingLogin" class="h-screen fixed inset-0 flex-col items-center justify-center bg-black z-[2000]">
+        <div class="bg-zinc-950 p-12 rounded-[40px] border border-zinc-800 w-full max-w-md text-center">
+            <h2 class="text-gold font-black text-2xl uppercase italic mb-8">Protocolo de Reunião</h2>
+            <input type="text" id="mProtocol" placeholder="0000" class="bg-zinc-900 border border-zinc-800 w-full text-center text-5xl font-mono py-6 rounded-2xl mb-8 text-gold outline-none">
+            <button onclick="loginReuniao()" class="btn-gold w-full py-6 rounded-2xl text-xl uppercase italic">Começar</button>
+            <button onclick="voltarAoPainel()" class="text-zinc-600 text-[10px] mt-10 block w-full uppercase underline">Sair</button>
+        </div>
+    </div>
+
+    <div id="modalAdmin">
+        <div class="bg-zinc-950 p-10 rounded-3xl border border-zinc-800 w-full max-w-lg">
+            <div id="adminAuth">
+                <h2 class="text-gold font-black mb-6 uppercase">Master</h2>
+                <input type="password" id="adminPassInput" placeholder="Senha Master" class="input-dark w-full mb-4">
+                <button onclick="authAdmin()" class="btn-gold w-full py-3 rounded-lg">Acessar</button>
+                <button onclick="hideAdminModal()" class="w-full text-zinc-600 text-[10px] mt-4 uppercase text-center">Fechar</button>
+            </div>
+            <div id="adminPanel" class="hidden space-y-6">
+                <h2 class="text-gold font-black uppercase">Membros</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="newStaffName" placeholder="Nome" class="input-dark">
+                    <input type="text" id="newStaffUser" placeholder="Login" class="input-dark">
+                    <input type="password" id="newStaffPass" placeholder="Senha" class="input-dark">
+                    <select id="newStaffRole" class="input-dark"><option value="Closer">Closer</option><option value="SDR">SDR</option></select>
+                    <button onclick="cadastrarEquipe()" class="btn-gold col-span-2 py-3 text-xs uppercase">Salvar</button>
+                </div>
+                <div class="bg-black p-4 rounded-xl max-h-[150px] overflow-y-auto text-[10px]" id="staffList"></div>
+                <input type="file" id="pdfInput" accept="application/pdf" class="hidden" onchange="savePdf(this.files[0])">
+                <label for="pdfInput" class="btn-gold block text-center py-3 rounded-lg text-xs cursor-pointer">Trocar PDF Apresentação</label>
+                <button onclick="hideAdminModal()" class="w-full text-zinc-600 text-[10px] uppercase text-center mt-4">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        let pdfDoc = null, pageNum = 1, isRendering = false, db = null, activeLead = null;
+        const SENHA_MASTER = "admin777"; 
+
+        const request = indexedDB.open("ArxAdsDB_V11", 1);
+        request.onupgradeneeded = e => e.target.result.createObjectStore("files");
+        request.onsuccess = e => { db = e.target.result; checkSavedPdf(); };
+
+        function validaLogin() {
+            const u = document.getElementById('loginUser').value;
+            const p = document.getElementById('loginPass').value;
+            const eq = JSON.parse(localStorage.getItem('gold_equipe_v11') || '[]');
+            const userFound = eq.find(m => m.user === u && m.pass === p);
+            if((u === "admin" && p === SENHA_MASTER) || userFound) {
+                document.getElementById('vendorLogin').style.display = 'none';
+                document.getElementById('mainDashboard').style.display = 'flex';
+                updateSelects(); renderCRM();
+            } else alert("Acesso negado!");
+        }
+
+        async function renderPage(num) {
+            if(!pdfDoc || isRendering) return;
+            isRendering = true;
+            const page = await pdfDoc.getPage(num);
+            const canvas = document.getElementById('pdfCanvas');
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height; canvas.width = viewport.width;
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+            document.getElementById('pageNumDisplay').innerText = num;
+            isRendering = false;
+            if(num === 14 && activeLead) {
+                document.getElementById('cotaTexto').innerText = activeLead.cota;
+                document.getElementById('cotaPopup').style.display = 'block';
+            } else document.getElementById('cotaPopup').style.display = 'none';
+        }
+
+        function changePage(d) { let n = pageNum + d; if(n > 0 && n <= pdfDoc.numPages) { pageNum = n; renderPage(n); } }
+
+        function renderRanking() {
+            const leads = JSON.parse(localStorage.getItem('leads_v11') || '[]');
+            const cSt = {}; const sSt = {};
+            leads.forEach(l => {
+                if(l.status === 'FECHOU') {
+                    cSt[l.closer] = (cSt[l.closer] || 0) + (parseFloat(l.setup) + parseFloat(l.mensal));
+                }
+                sSt[l.sdr] = (sSt[l.sdr] || 0) + 1;
+            });
+            document.getElementById('rankingClosers').innerHTML = Object.entries(cSt).sort((a,b) => b[1]-a[1]).map(([n,v]) => `
+                <div class="bg-zinc-900 p-6 rounded-2xl flex justify-between items-center border-l-4 border-green-500">
+                    <span class="font-black uppercase">${n}</span>
+                    <span class="text-green-500 font-mono font-bold">R$ ${v.toLocaleString()}</span>
+                </div>`).join('');
+            document.getElementById('rankingSDRs').innerHTML = Object.entries(sSt).sort((a,b) => b[1]-a[1]).map(([n,v]) => `
+                <div class="bg-zinc-950 p-4 rounded-xl flex justify-between items-center border border-zinc-900">
+                    <span class="text-xs uppercase font-bold text-zinc-400">${n}</span>
+                    <span class="text-gold font-black">${v} AG.</span>
+                </div>`).join('');
+        }
+
+        function salvarLead() {
+            const l = {
+                lead: document.getElementById('leadName').value,
+                nicho: document.getElementById('leadNicho').value,
+                protocolo: document.getElementById('leadProt').value,
+                data: document.getElementById('leadDate').value,
+                sdr: document.getElementById('sdrSelect').value,
+                closer: document.getElementById('closerSelect').value,
+                cota: document.getElementById('cotaType').value,
+                status: 'AGENDADO', statusReuniao: 'Pendente', setup: 0, mensal: 0
+            };
+            if(!l.lead || !l.protocolo) return alert("Erro nos campos!");
+            const leads = JSON.parse(localStorage.getItem('leads_v11') || '[]');
+            leads.unshift(l);
+            localStorage.setItem('leads_v11', JSON.stringify(leads));
+            renderCRM();
+        }
+
+        function salvarResultado(st) {
+            const leads = JSON.parse(localStorage.getItem('leads_v11') || '[]');
+            const idx = leads.findIndex(l => l.protocolo === activeLead.protocolo);
+            leads[idx].status = st;
+            leads[idx].statusReuniao = st === 'FECHOU' ? 'Fechada' : 'No-Show';
+            leads[idx].setup = document.getElementById('f_setup').value || 0;
+            leads[idx].mensal = document.getElementById('f_mensal').value || 0;
+            leads[idx].closer = document.getElementById('f_vendedor').value;
+            leads[idx].sdr = document.getElementById('f_sdr').value;
+            localStorage.setItem('leads_v11', JSON.stringify(leads));
+            document.getElementById('modalFechamento').style.display = 'none';
+            if(st === 'FECHOU') {
+                confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 }, colors: ['#FFD700', '#ffffff'] });
+                document.getElementById('mainDashboard').style.display = 'none';
+                document.getElementById('telaComemoracao').style.display = 'flex';
+            } else showSection('crm-list');
+        }
+
+        function renderCRM() {
+            const leads = JSON.parse(localStorage.getItem('leads_v11') || '[]');
+            document.getElementById('crmBody').innerHTML = leads.map(l => `
+                <tr class="border-b border-zinc-900 text-xs">
+                    <td class="p-4 text-zinc-600 font-mono">${l.data.replace('T', ' ')}</td>
+                    <td class="p-4 font-bold uppercase">${l.lead}</td>
+                    <td class="p-4 text-gold font-bold uppercase">${l.nicho}</td>
+                    <td class="p-4"><span class="bg-zinc-800 px-2 py-1 rounded text-[10px]">${l.statusReuniao}</span></td>
+                </tr>`).join('');
+        }
+
+        function renderPipeline() {
+            const leads = JSON.parse(localStorage.getItem('leads_v11') || '[]');
+            const columns = ['AGENDADO', 'FOLLOWUP', 'FECHOU'];
+            document.getElementById('pipelineContainer').innerHTML = columns.map(col => `
+                <div class="kanban-col p-4 flex-1">
+                    <h3 class="text-[10px] font-black uppercase text-zinc-600 mb-6 border-b border-zinc-900 pb-2">${col}</h3>
+                    ${leads.filter(l => l.status === col).map(l => `
+                        <div class="lead-card border-l-2 ${col==='FECHOU'?'border-green-500':'border-gold'}">
+                            <div class="text-[8px] font-mono text-zinc-600 mb-2 uppercase flex justify-between">
+                                <span>#${l.protocolo}</span> <span>${l.nicho}</span>
+                            </div>
+                            <div class="font-black text-white uppercase text-sm">${l.lead}</div>
+                            <div class="text-[9px] text-zinc-500 mt-2">${l.sdr} ➔ ${l.closer}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById('sec-' + id).classList.remove('hidden');
+            if(document.getElementById('nav-' + id)) document.getElementById('nav-' + id).classList.add('active');
+            if(id === 'apresentacao_real') { pageNum = 1; setTimeout(() => renderPage(1), 100); }
+            if(id === 'ranking') renderRanking();
+            if(id === 'pipeline') renderPipeline();
+        }
+
+        function cadastrarEquipe() {
+            const n = document.getElementById('newStaffName').value, u = document.getElementById('newStaffUser').value, p = document.getElementById('newStaffPass').value, r = document.getElementById('newStaffRole').value;
+            if(!n || !u || !p) return;
+            const eq = JSON.parse(localStorage.getItem('gold_equipe_v11') || '[]');
+            eq.push({ name: n, user: u, pass: p, role: r });
+            localStorage.setItem('gold_equipe_v11', JSON.stringify(eq));
+            renderStaffList(); updateSelects();
+        }
+
+        function renderStaffList() {
+            const eq = JSON.parse(localStorage.getItem('gold_equipe_v11') || '[]');
+            document.getElementById('staffList').innerHTML = eq.map(e => `<div class="py-1 border-b border-zinc-900">${e.role}: ${e.name}</div>`).join('');
+        }
+
+        function updateSelects() {
+            const eq = JSON.parse(localStorage.getItem('gold_equipe_v11') || '[]');
+            const closers = eq.filter(e => e.role === 'Closer').map(e => `<option value="${e.name}">${e.name}</option>`).join('');
+            const sdrs = eq.filter(e => e.role === 'SDR').map(e => `<option value="${e.name}">${e.name}</option>`).join('');
+            document.querySelectorAll('.closer-list-source').forEach(s => s.innerHTML = closers);
+            document.querySelectorAll('.sdr-list-source').forEach(s => s.innerHTML = sdrs);
+        }
+
+        function loginReuniao() {
+            const prot = document.getElementById('mProtocol').value;
+            const leads = JSON.parse(localStorage.getItem('leads_v11') || '[]');
+            const found = leads.find(l => l.protocolo === prot);
+            if(found) { activeLead = found; pageNum = 1; document.getElementById('meetingLogin').style.display = 'none'; document.getElementById('mainDashboard').style.display = 'flex'; showSection('apresentacao_real'); }
+        }
+
+        function showAdminModal() { document.getElementById('modalAdmin').style.display = 'flex'; }
+        function hideAdminModal() { document.getElementById('modalAdmin').style.display = 'none'; }
+        function authAdmin() { if(document.getElementById('adminPassInput').value === SENHA_MASTER) { document.getElementById('adminAuth').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); renderStaffList(); } }
+        function abrirModoReuniao() { document.getElementById('mainDashboard').style.display = 'none'; document.getElementById('meetingLogin').style.display = 'flex'; }
+        function voltarAoPainel() { document.getElementById('meetingLogin').style.display = 'none'; document.getElementById('telaComemoracao').style.display = 'none'; document.getElementById('mainDashboard').style.display = 'flex'; showSection('crm-list'); }
+        function abrirFechamento() { if(activeLead) { document.getElementById('f_vendedor').value = activeLead.closer; document.getElementById('f_sdr').value = activeLead.sdr; } document.getElementById('modalFechamento').style.display = 'flex'; }
+        async function checkSavedPdf() { const tx = db.transaction("files", "readonly"); const get = tx.objectStore("files").get("presentation"); get.onsuccess = async () => { if(get.result) pdfDoc = await pdfjsLib.getDocument({data: get.result}).promise; }; }
+        function savePdf(file) { const reader = new FileReader(); reader.onload = e => { const tx = db.transaction("files", "readwrite"); tx.objectStore("files").put(e.target.result, "presentation"); tx.oncomplete = () => { alert("PDF Salvo!"); checkSavedPdf(); }; }; reader.readAsArrayBuffer(file); }
+    </script>
+</body>
+</html>
