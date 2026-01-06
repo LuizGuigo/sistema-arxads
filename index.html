@@ -15,7 +15,6 @@
         .btn-gold { background-color: #FFD700; color: #000; font-weight: 900; transition: 0.3s; cursor: pointer; border: none; }
         .input-dark { background: #111; border: 1px solid #222; color: #fff; padding: 12px; border-radius: 8px; outline: none; font-size: 13px; width: 100%; }
         
-        /* Sidebar e Layout */
         #mainDashboard { display: none; min-height: 100vh; }
         aside { width: 260px; background: #050505; border-right: 1px solid #111; display: flex; flex-direction: column; flex-shrink: 0; transition: 0.3s; }
         aside.hidden { margin-left: -260px; pointer-events: none; }
@@ -23,7 +22,6 @@
         .menu-item { cursor: pointer; border-left: 3px solid transparent; transition: 0.3s; color: #555; font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 18px 25px; }
         .menu-item.active { border-left: 3px solid #FFD700; background: #0a0a0a; color: #FFD700; }
 
-        /* Popup de Cota (V11) */
         #cotaPopup { 
             display: none; position: absolute; top: 50%; left: 50%; 
             transform: translate(-50%, -50%); z-index: 500; 
@@ -78,8 +76,8 @@
                     <select id="sdrSelect" class="input-dark sdr-list-source"></select>
                     <select id="closerSelect" class="input-dark closer-list-source"></select>
                     <select id="cotaType" class="input-dark col-span-2">
-                        <option value="Cota 1: 50% de desconto no SETUP">Cota Bonificada 2/5 restantes</option>
-                        <option value="Cota 2: 50% de desconto total">Cota Bonificada 1/5 restantes</option>
+                        <option value="Cota Bonificada 2/5 restantes">Cota Bonificada 2/5 restantes</option>
+                        <option value="Cota Bonificada 1/5 restantes">Cota Bonificada 1/5 restantes</option>
                     </select>
                     <button onclick="salvarLead()" class="btn-gold rounded-xl font-black uppercase text-sm py-4 col-span-4">Agendar Agora</button>
                 </div>
@@ -117,11 +115,11 @@
                     <button onclick="abrirFechamento()" class="bg-white text-black px-10 py-3 rounded-full font-black text-xs uppercase hover:scale-105 transition">Encerrar e Fechar Venda</button>
                 </div>
                 
-                <div class="flex-1 overflow-auto p-4 flex justify-center items-start bg-black relative">
+                <div class="flex-1 overflow-hidden p-4 flex justify-center items-center bg-black relative" id="pdfContainer">
                     <canvas id="pdfCanvas" class="shadow-2xl shadow-gold/5"></canvas>
                     
                     <div id="cotaPopup">
-                        <h3 class="text-zinc-500 text-[10px] uppercase font-bold mb-2 tracking-[0.3em]">Cota Bonificada Liberada 2/5 restantes</h3>
+                        <h3 class="text-zinc-500 text-[10px] uppercase font-bold mb-2 tracking-[0.3em]">Cota Bonificada Liberada</h3>
                         <h2 id="cotaTexto" class="text-3xl font-black text-gold italic uppercase mb-8 leading-tight"></h2>
                         <button onclick="document.getElementById('cotaPopup').style.display='none'" class="btn-gold px-12 py-4 rounded-full text-xs uppercase">Aplicar Benefício Agora</button>
                     </div>
@@ -174,7 +172,7 @@
 
     <div id="meetingLogin" class="h-screen fixed inset-0 flex flex-col items-center justify-center bg-black z-[2000] hidden">
         <div class="bg-zinc-950 p-12 rounded-[40px] border border-zinc-800 w-full max-w-sm text-center">
-            <h2 class="text-gold font-black text-2xl uppercase mb-10 tracking-tighter italic">Reunião ArxAds</h2>
+            <h2 class="text-gold font-black text-2xl uppercase mb-10 tracking-tighter italic">Reunião ARXADS CRM</h2>
             <input type="text" id="mProtocol" placeholder="PROTOCOLO" class="bg-zinc-900 border border-zinc-800 w-full text-center text-4xl font-mono py-6 rounded-2xl mb-8 text-gold outline-none">
             <button onclick="loginReuniao()" class="btn-gold w-full py-6 rounded-2xl text-xl uppercase italic">Começar Agora</button>
             <button onclick="voltarAoPainel()" class="text-zinc-600 text-[10px] mt-10 block w-full uppercase underline italic">Sair do Modo Reunião</button>
@@ -186,7 +184,7 @@
         let pdfDoc = null, pageNum = 1, activeLead = null, db = null, charts = { c1: null, c2: null };
         const SENHA_MASTER = "admin777";
 
-        // DB PARA PDF
+        // DB E PERSISTÊNCIA MANTIDOS
         const request = indexedDB.open("ArxAdsDB_V18", 1);
         request.onupgradeneeded = e => e.target.result.createObjectStore("files");
         request.onsuccess = e => { db = e.target.result; checkSavedPdf(); };
@@ -207,38 +205,40 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // SEÇÕES E SIDEBAR CINEMA
         function showSection(id) {
             const sidebar = document.getElementById('sidebarMenu');
             document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            
-            // Lógica Cinema: Esconde sidebar na apresentação
-            if(id === 'apresentacao_real') {
-                sidebar.classList.add('hidden');
-            } else {
-                sidebar.classList.remove('hidden');
-            }
-
+            if(id === 'apresentacao_real') sidebar.classList.add('hidden');
+            else sidebar.classList.remove('hidden');
             document.getElementById('sec-' + id).classList.remove('hidden');
             if(document.getElementById('nav-' + id)) document.getElementById('nav-' + id).classList.add('active');
-            
             if(id === 'analytics') renderAnalytics();
             if(id === 'pipeline') renderPipeline();
             if(id === 'ranking') renderRanking();
         }
 
-        // LÓGICA DE PDF E POPUP (V11)
+        // --- FUNÇÃO ALTERADA PARA AUTO-AJUSTE DE ZOOM ---
         async function renderPage(num) {
             if(!pdfDoc) return;
             const page = await pdfDoc.getPage(num);
             const canvas = document.getElementById('pdfCanvas');
-            const viewport = page.getViewport({ scale: 1.3 });
-            canvas.height = viewport.height; canvas.width = viewport.width;
+            const container = document.getElementById('pdfContainer');
+            
+            // Calcula a escala para caber na tela (Fit to Screen)
+            const unscaledViewport = page.getViewport({ scale: 1 });
+            const padding = 60; // Margem de segurança
+            const scaleWidth = (container.clientWidth - padding) / unscaledViewport.width;
+            const scaleHeight = (container.clientHeight - padding) / unscaledViewport.height;
+            const finalScale = Math.min(scaleWidth, scaleHeight);
+
+            const viewport = page.getViewport({ scale: finalScale });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
             await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
             document.getElementById('pageNumDisplay').innerText = num;
 
-            // Trigger da Cota (Slide 14)
             if(num === 14 && activeLead) {
                 document.getElementById('cotaTexto').innerText = activeLead.cota;
                 document.getElementById('cotaPopup').style.display = 'block';
@@ -249,7 +249,7 @@
 
         function changePage(d) { let n = pageNum + d; if(n > 0 && n <= pdfDoc.numPages) { pageNum = n; renderPage(n); } }
 
-        // CORE SISTEMA
+        // RESTANTE DO CÓDIGO MANTIDO IGUAL (CRM, LOGIN, ETC)
         function validaLogin() {
             const u = document.getElementById('loginUser').value, p = document.getElementById('loginPass').value;
             const eq = JSON.parse(localStorage.getItem('arx_equipe') || '[]');
@@ -313,7 +313,6 @@
             const r = leads.filter(l => l.statusReuniao === 'Realizada').length;
             const n = leads.filter(l => l.statusReuniao === 'No-Show').length;
             const f = leads.filter(l => l.status === 'FECHOU').length;
-
             if(charts.c1) charts.c1.destroy(); if(charts.c2) charts.c2.destroy();
             charts.c1 = new Chart(document.getElementById('chartReuniao'), { type: 'bar', data: { labels: ['Presença', 'No-Show'], datasets: [{ data: [r, n], backgroundColor: ['#FFD700', '#222'] }] } });
             charts.c2 = new Chart(document.getElementById('chartVendas'), { type: 'doughnut', data: { labels: ['Vendas', 'Restante'], datasets: [{ data: [f, leads.length - f], backgroundColor: ['#22c55e', '#111'], borderColor: '#000' }] } });
@@ -328,7 +327,7 @@
                 document.getElementById('meetingLogin').classList.add('hidden');
                 document.getElementById('mainDashboard').style.display = 'flex';
                 showSection('apresentacao_real');
-                pageNum = 1; renderPage(1);
+                pageNum = 1; setTimeout(() => renderPage(1), 100);
             } else alert("Lead não encontrado!");
         }
 
@@ -398,6 +397,11 @@
                         </div>`).join('')}
                 </div>`).join('');
         }
+        
+        // Ajusta o PDF se a janela mudar de tamanho
+        window.addEventListener('resize', () => {
+            if(!document.getElementById('sec-apresentacao_real').classList.contains('hidden')) renderPage(pageNum);
+        });
     </script>
 </body>
 </html>
