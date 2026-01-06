@@ -15,11 +15,11 @@
         .btn-gold { background-color: #FFD700; color: #000; font-weight: 900; transition: 0.3s; cursor: pointer; border: none; }
         .input-dark { background: #111; border: 1px solid #222; color: #fff; padding: 12px; border-radius: 8px; outline: none; font-size: 13px; width: 100%; }
         
-        /* Ajuste de Responsividade */
+        /* Layout Responsivo */
         #mainDashboard { display: none; min-height: 100vh; flex-direction: column; }
         @media (min-width: 1024px) { #mainDashboard { flex-direction: row; } }
 
-        aside { width: 100%; background: #050505; border-bottom: 1px solid #111; z-index: 50; }
+        aside { width: 100%; background: #050505; border-bottom: 1px solid #111; z-index: 50; flex-shrink: 0; }
         @media (min-width: 1024px) { aside { width: 260px; height: 100vh; border-right: 1px solid #111; position: sticky; top: 0; } }
 
         .menu-item { cursor: pointer; border-left: 3px solid transparent; transition: 0.3s; color: #555; font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 15px 20px; white-space: nowrap; }
@@ -29,19 +29,19 @@
         .kanban-col { background: #0a0a0a; border: 1px solid #111; border-radius: 15px; min-width: 280px; max-height: 80vh; overflow-y: auto; }
         .lead-card { background: #151515; border: 1px solid #222; padding: 15px; border-radius: 12px; margin-bottom: 12px; }
         
-        #modalFechamento, #telaComemoracao, #modalAdmin { display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); }
-        .table-res { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        #modalFechamento, #modalAdmin { display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); }
+        .table-res { overflow-x: auto; }
     </style>
 </head>
 <body>
 
     <div id="vendorLogin" class="h-screen flex items-center justify-center bg-black z-[5000] fixed inset-0">
         <div class="bg-zinc-950 p-10 rounded-[40px] border border-zinc-900 w-full max-w-sm text-center shadow-2xl">
-            <h1 class="text-4xl font-black text-gold italic mb-8 uppercase tracking-tighter">ARXADS</h1>
+            <h1 class="text-4xl font-black text-gold italic mb-8 uppercase tracking-tighter">ARXADS CRM</h1>
             <div class="space-y-4 flex flex-col text-left">
                 <input type="text" id="loginUser" class="input-dark" placeholder="Usuário">
                 <input type="password" id="loginPass" class="input-dark" placeholder="Senha">
-                <button onclick="validaLogin()" class="btn-gold py-4 rounded-2xl mt-4 uppercase text-xs">Acessar Sistema</button>
+                <button onclick="validaLogin()" class="btn-gold py-4 rounded-2xl mt-4 uppercase text-xs">Entrar</button>
             </div>
         </div>
     </div>
@@ -57,7 +57,7 @@
                 <div onclick="abrirModoReuniao()" class="menu-item bg-zinc-900 text-white mt-auto">🎬 MODO REUNIÃO</div>
             </nav>
             <div class="p-4 border-t border-zinc-900">
-                <button onclick="showAdminModal()" class="text-[9px] text-zinc-600 uppercase font-bold hover:text-gold w-full text-left">⚙️ Gestão de Time</button>
+                <button onclick="showAdminModal()" class="text-[9px] text-zinc-600 uppercase font-bold hover:text-gold w-full text-left italic">⚙️ Gestão & PDF</button>
             </div>
         </aside>
 
@@ -75,18 +75,18 @@
                         <option value="Cota 1: 50% SETUP">Cota Bonificada: 50% SETUP</option>
                         <option value="Cota 2: 50% TOTAL">Cota Bonificada: 50% TOTAL</option>
                     </select>
-                    <button onclick="salvarLead()" class="btn-gold rounded-xl font-black uppercase text-xs py-4 lg:col-span-4">Salvar Agendamento</button>
+                    <button onclick="salvarLead()" class="btn-gold rounded-xl font-black uppercase text-xs py-4 lg:col-span-4">Agendar Agora</button>
                 </div>
 
-                <div class="table-res rounded-xl border border-zinc-900">
+                <div class="table-res rounded-xl border border-zinc-900 overflow-hidden">
                     <table class="w-full text-left text-xs min-w-[800px]">
                         <thead class="bg-zinc-900 text-zinc-500 uppercase text-[9px]">
                             <tr>
-                                <th class="p-4">Data/Hora</th>
+                                <th class="p-4">Data</th>
                                 <th class="p-4">Cliente</th>
                                 <th class="p-4">Status Com.</th>
                                 <th class="p-4">Reunião</th>
-                                <th class="p-4">Ações</th>
+                                <th class="p-4">Ação</th>
                             </tr>
                         </thead>
                         <tbody id="crmBody"></tbody>
@@ -95,14 +95,14 @@
             </section>
 
             <section id="sec-analytics" class="hidden space-y-8">
-                <h1 class="text-2xl font-black uppercase text-gold italic">Relatórios de Performance</h1>
+                <h1 class="text-2xl font-black uppercase text-gold italic">Business Intelligence</h1>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-zinc-950 p-6 rounded-3xl border border-zinc-900">
-                        <h3 class="text-[10px] text-zinc-500 uppercase mb-4">Presença em Reuniões</h3>
+                        <h3 class="text-[10px] text-zinc-500 uppercase mb-4 text-center">Reuniões: Realizada vs No-Show</h3>
                         <canvas id="chartReuniao"></canvas>
                     </div>
                     <div class="bg-zinc-950 p-6 rounded-3xl border border-zinc-900">
-                        <h3 class="text-[10px] text-zinc-500 uppercase mb-4">Conversão de Vendas (%)</h3>
+                        <h3 class="text-[10px] text-zinc-500 uppercase mb-4 text-center">Conversão Geral (%)</h3>
                         <canvas id="chartVendas"></canvas>
                     </div>
                 </div>
@@ -113,25 +113,19 @@
             </section>
 
             <section id="sec-ranking" class="hidden space-y-10">
-                <div>
-                    <h2 class="text-gold font-black uppercase mb-4 tracking-widest text-xs">Top Performance Closers</h2>
-                    <div id="rankingClosers" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                </div>
-                <div>
-                    <h2 class="text-gold font-black uppercase mb-4 tracking-widest text-xs">Top Performance SDRs</h2>
-                    <div id="rankingSDRs" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-                </div>
+                <div id="rankingClosers" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                <div id="rankingSDRs" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
             </section>
 
             <section id="sec-apresentacao_real" class="hidden h-full flex flex-col bg-black">
                 <div class="p-4 bg-zinc-950 border-b border-zinc-900 flex justify-between items-center">
                     <button onclick="changePage(-1)" class="text-gold text-2xl">◀</button>
-                    <span class="text-[10px] uppercase text-zinc-500">Pág <span id="pageNumDisplay">1</span></span>
+                    <span class="text-[10px] uppercase text-zinc-500">Slide <span id="pageNumDisplay">1</span></span>
                     <button onclick="changePage(1)" class="text-gold text-2xl">▶</button>
                     <button onclick="abrirFechamento()" class="bg-white text-black px-6 py-2 rounded-full font-black text-[10px] uppercase">Fechar Venda</button>
                 </div>
-                <div class="flex-1 overflow-auto p-4 flex justify-center bg-black relative">
-                    <canvas id="pdfCanvas" class="max-w-full"></canvas>
+                <div class="flex-1 overflow-auto p-4 flex justify-center bg-black">
+                    <canvas id="pdfCanvas" class="max-w-full shadow-2xl shadow-gold/10"></canvas>
                 </div>
             </section>
         </main>
@@ -140,62 +134,83 @@
     <div id="modalAdmin">
         <div class="bg-zinc-950 p-8 rounded-[40px] border border-zinc-800 w-full max-w-lg mx-4">
             <div id="adminAuth">
-                <h2 class="text-gold font-black mb-6 uppercase text-center italic">Acesso Restrito</h2>
+                <h2 class="text-gold font-black mb-6 uppercase text-center">Acesso Master</h2>
                 <input type="password" id="adminPassInput" placeholder="Senha Master" class="input-dark text-center mb-4">
-                <button onclick="authAdmin()" class="btn-gold w-full py-4 rounded-xl uppercase text-xs">Desbloquear Gestão</button>
-                <button onclick="hideAdminModal()" class="w-full text-zinc-600 text-[10px] mt-4 uppercase text-center underline">Voltar</button>
+                <button onclick="authAdmin()" class="btn-gold w-full py-4 rounded-xl uppercase text-xs">Entrar no Painel</button>
+                <button onclick="hideAdminModal()" class="w-full text-zinc-600 text-[10px] mt-4 uppercase text-center underline">Cancelar</button>
             </div>
             <div id="adminPanel" class="hidden space-y-6">
-                <h2 class="text-gold font-black uppercase text-sm">Cadastrar Novo Membro</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <h2 class="text-gold font-black uppercase text-xs border-b border-zinc-900 pb-2">Gestão de Equipe</h2>
+                <div class="grid grid-cols-2 gap-2">
                     <input type="text" id="newStaffName" placeholder="Nome" class="input-dark">
                     <input type="text" id="newStaffUser" placeholder="Login" class="input-dark">
                     <input type="password" id="newStaffPass" placeholder="Senha" class="input-dark">
-                    <select id="newStaffRole" class="input-dark">
-                        <option value="Closer">Closer</option>
-                        <option value="SDR">SDR</option>
-                    </select>
+                    <select id="newStaffRole" class="input-dark"><option value="Closer">Closer</option><option value="SDR">SDR</option></select>
+                    <button onclick="cadastrarEquipe()" class="btn-gold col-span-2 py-3 rounded-lg text-[10px] uppercase">Salvar Membro</button>
                 </div>
-                <button onclick="cadastrarEquipe()" class="btn-gold w-full py-3 rounded-xl text-[10px] uppercase">Registrar no Time</button>
-                <div class="bg-black p-4 rounded-xl max-h-[150px] overflow-y-auto text-[10px] border border-zinc-900" id="staffList"></div>
-                <button onclick="hideAdminModal()" class="w-full text-zinc-600 text-[10px] uppercase text-center">Fechar Painel</button>
+                <div class="bg-black p-4 rounded-xl max-h-[120px] overflow-y-auto text-[10px] border border-zinc-900" id="staffList"></div>
+                
+                <h2 class="text-gold font-black uppercase text-xs border-b border-zinc-900 pb-2 mt-4">Apresentação PDF</h2>
+                <input type="file" id="pdfInput" accept="application/pdf" class="hidden" onchange="savePdf(this.files[0])">
+                <label for="pdfInput" class="btn-gold block text-center py-4 rounded-xl text-[10px] uppercase cursor-pointer">Trocar PDF de Reunião</label>
+                
+                <button onclick="hideAdminModal()" class="w-full text-zinc-600 text-[10px] uppercase text-center pt-4">Fechar</button>
             </div>
         </div>
     </div>
 
     <div id="modalFechamento">
-        <div class="bg-zinc-950 p-8 rounded-[40px] border border-zinc-800 w-full max-w-sm mx-4">
-            <h2 class="text-xl font-black text-gold mb-6 uppercase text-center italic">Contrato de Fechamento</h2>
+        <div class="bg-zinc-950 p-8 rounded-[40px] border border-zinc-800 w-full max-w-sm mx-4 text-center">
+            <h2 class="text-xl font-black text-gold mb-6 uppercase italic">Resultado da Reunião</h2>
             <div class="space-y-4">
-                <input type="number" id="f_setup" placeholder="Setup (R$)" class="input-dark">
-                <input type="number" id="f_mensal" placeholder="Mensal (R$)" class="input-dark">
-                <button onclick="salvarResultado('FECHOU')" class="w-full bg-green-600 py-5 rounded-2xl font-black uppercase text-xs shadow-lg shadow-green-900/20">Confirmar Venda ✅</button>
-                <button onclick="salvarResultado('PERDIDO')" class="w-full bg-zinc-900 py-3 rounded-2xl font-bold uppercase text-[10px] text-zinc-500">Perdemos o Lead ❌</button>
+                <input type="number" id="f_setup" placeholder="Valor Setup (R$)" class="input-dark">
+                <input type="number" id="f_mensal" placeholder="Valor Mensal (R$)" class="input-dark">
+                <button onclick="salvarResultado('FECHOU')" class="w-full bg-green-600 py-5 rounded-2xl font-black uppercase text-xs">Venda Fechada ✅</button>
+                <button onclick="salvarResultado('PERDIDO')" class="w-full bg-zinc-900 py-3 rounded-2xl font-bold uppercase text-[10px] text-zinc-500">Lead Perdido ❌</button>
             </div>
         </div>
     </div>
 
     <div id="meetingLogin" class="h-screen fixed inset-0 flex flex-col items-center justify-center bg-black z-[2000] hidden">
         <div class="bg-zinc-950 p-10 rounded-[40px] border border-zinc-800 w-full max-w-sm text-center">
-            <h2 class="text-gold font-black text-xl uppercase italic mb-8 tracking-tighter">Protocolo de Reunião</h2>
+            <h2 class="text-gold font-black text-xl uppercase italic mb-8">Protocolo de Reunião</h2>
             <input type="text" id="mProtocol" placeholder="0000" class="bg-zinc-900 border border-zinc-800 w-full text-center text-4xl font-mono py-5 rounded-2xl mb-6 text-gold outline-none">
-            <button onclick="loginReuniao()" class="btn-gold w-full py-5 rounded-2xl text-lg uppercase italic">Iniciar Apresentação</button>
-            <button onclick="voltarAoPainel()" class="text-zinc-600 text-[10px] mt-8 block w-full uppercase underline tracking-widest">Sair do Modo Reunião</button>
+            <button onclick="loginReuniao()" class="btn-gold w-full py-5 rounded-2xl text-lg uppercase">Iniciar Slides</button>
+            <button onclick="voltarAoPainel()" class="text-zinc-600 text-[10px] mt-8 block w-full uppercase underline">Sair</button>
         </div>
     </div>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-        let pdfDoc = null, pageNum = 1, isRendering = false, activeLead = null;
+        let pdfDoc = null, pageNum = 1, activeLead = null, db = null;
         let chart1 = null, chart2 = null;
         const SENHA_MASTER = "admin777";
 
+        // Inicializa Banco de Dados para o PDF
+        const request = indexedDB.open("ArxAdsDB_V17", 1);
+        request.onupgradeneeded = e => e.target.result.createObjectStore("files");
+        request.onsuccess = e => { db = e.target.result; checkSavedPdf(); };
+
+        function checkSavedPdf() {
+            const tx = db.transaction("files", "readonly");
+            const get = tx.objectStore("files").get("presentation");
+            get.onsuccess = async () => { if(get.result) pdfDoc = await pdfjsLib.getDocument({data: get.result}).promise; };
+        }
+
+        function savePdf(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const tx = db.transaction("files", "readwrite");
+                tx.objectStore("files").put(e.target.result, "presentation");
+                tx.oncomplete = () => { alert("PDF Salvo com sucesso!"); checkSavedPdf(); };
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
         function validaLogin() {
-            const u = document.getElementById('loginUser').value;
-            const p = document.getElementById('loginPass').value;
+            const u = document.getElementById('loginUser').value, p = document.getElementById('loginPass').value;
             const eq = JSON.parse(localStorage.getItem('arx_equipe') || '[]');
-            const userFound = eq.find(m => m.user === u && m.pass === p);
-            if((u === "admin" && p === SENHA_MASTER) || userFound) {
+            if((u === "admin" && p === SENHA_MASTER) || eq.find(m => m.user === u && m.pass === p)) {
                 document.getElementById('vendorLogin').style.display = 'none';
                 document.getElementById('mainDashboard').style.display = 'flex';
                 updateSelects(); renderCRM();
@@ -212,11 +227,9 @@
                 sdr: document.getElementById('sdrSelect').value,
                 closer: document.getElementById('closerSelect').value,
                 cota: document.getElementById('cotaType').value,
-                status: 'AGENDADO',
-                statusReuniao: 'Pendente',
-                setup: 0, mensal: 0
+                status: 'AGENDADO', statusReuniao: 'Pendente', setup: 0, mensal: 0
             };
-            if(!l.lead || !l.protocolo) return alert("Preencha os campos!");
+            if(!l.lead || !l.protocolo) return alert("Erro nos campos!");
             const leads = JSON.parse(localStorage.getItem('arx_leads') || '[]');
             leads.unshift(l);
             localStorage.setItem('arx_leads', JSON.stringify(leads));
@@ -228,11 +241,11 @@
             const idx = leads.findIndex(l => l.id === id);
             leads[idx][field] = value;
             localStorage.setItem('arx_leads', JSON.stringify(leads));
-            if(field === 'status') renderCRM();
+            renderCRM();
         }
 
         function deleteLead(id) {
-            if(confirm("Deseja deletar este lead permanentemente?")) {
+            if(confirm("Excluir reunião permanentemente?")) {
                 let leads = JSON.parse(localStorage.getItem('arx_leads') || '[]');
                 leads = leads.filter(l => l.id !== id);
                 localStorage.setItem('arx_leads', JSON.stringify(leads));
@@ -242,11 +255,10 @@
 
         function renderCRM() {
             const leads = JSON.parse(localStorage.getItem('arx_leads') || '[]');
-            const body = document.getElementById('crmBody');
-            body.innerHTML = leads.map(l => `
+            document.getElementById('crmBody').innerHTML = leads.map(l => `
                 <tr class="border-b border-zinc-900">
-                    <td class="p-4 text-zinc-500 font-mono">${l.data.replace('T', ' ')}</td>
-                    <td class="p-4 uppercase font-bold text-white">${l.lead}<br><span class="text-[8px] text-zinc-700">${l.protocolo}</span></td>
+                    <td class="p-4 text-zinc-500 font-mono text-[10px]">${l.data.replace('T', ' ')}</td>
+                    <td class="p-4 uppercase font-bold text-white text-[11px]">${l.lead}<br><span class="text-[8px] text-zinc-700">${l.protocolo}</span></td>
                     <td class="p-4">
                         <select onchange="updateLeadField(${l.id}, 'status', this.value)" class="bg-black border border-zinc-800 text-[10px] p-1 rounded">
                             <option value="AGENDADO" ${l.status==='AGENDADO'?'selected':''}>AGENDADO</option>
@@ -256,39 +268,26 @@
                         </select>
                     </td>
                     <td class="p-4">
-                        <select onchange="updateLeadField(${l.id}, 'statusReuniao', this.value)" class="bg-black border border-zinc-800 text-[10px] text-gold p-1 rounded">
+                        <select onchange="updateLeadField(${l.id}, 'statusReuniao', this.value)" class="bg-black border border-zinc-800 text-[10px] text-gold p-1 rounded font-bold">
                             <option value="Pendente" ${l.statusReuniao==='Pendente'?'selected':''}>⏳ Pendente</option>
                             <option value="Realizada" ${l.statusReuniao==='Realizada'?'selected':''}>✅ Realizada</option>
                             <option value="No-Show" ${l.statusReuniao==='No-Show'?'selected':''}>❌ No-Show</option>
                         </select>
                     </td>
-                    <td class="p-4">
-                        <button onclick="deleteLead(${l.id})" class="text-red-900 font-black hover:text-red-600">DELETAR</button>
-                    </td>
-                </tr>
-            `).join('');
+                    <td class="p-4"><button onclick="deleteLead(${l.id})" class="text-red-900 font-black hover:text-red-600 text-[9px]">EXCLUIR</button></td>
+                </tr>`).join('');
         }
 
         function renderAnalytics() {
             const leads = JSON.parse(localStorage.getItem('arx_leads') || '[]');
-            const realizadas = leads.filter(l => l.statusReuniao === 'Realizada').length;
-            const noshow = leads.filter(l => l.statusReuniao === 'No-Show').length;
-            const fechou = leads.filter(l => l.status === 'FECHOU').length;
-            const total = leads.length;
+            const r = leads.filter(l => l.statusReuniao === 'Realizada').length;
+            const n = leads.filter(l => l.statusReuniao === 'No-Show').length;
+            const f = leads.filter(l => l.status === 'FECHOU').length;
+            const t = leads.length;
 
-            if(chart1) chart1.destroy();
-            if(chart2) chart2.destroy();
-
-            chart1 = new Chart(document.getElementById('chartReuniao'), {
-                type: 'bar',
-                data: { labels: ['Realizada', 'No-Show'], datasets: [{ data: [realizadas, noshow], backgroundColor: ['#FFD700', '#222'] }] },
-                options: { plugins: { legend: { display: false } } }
-            });
-
-            chart2 = new Chart(document.getElementById('chartVendas'), {
-                type: 'doughnut',
-                data: { labels: ['Fechado', 'Perdido/Aberto'], datasets: [{ data: [fechou, total - fechou], backgroundColor: ['#22c55e', '#111'], borderColor: '#000' }] }
-            });
+            if(chart1) chart1.destroy(); if(chart2) chart2.destroy();
+            chart1 = new Chart(document.getElementById('chartReuniao'), { type: 'bar', data: { labels: ['Realizada', 'No-Show'], datasets: [{ data: [r, n], backgroundColor: ['#FFD700', '#222'] }] } });
+            chart2 = new Chart(document.getElementById('chartVendas'), { type: 'doughnut', data: { labels: ['Fechado', 'Total'], datasets: [{ data: [f, t-f], backgroundColor: ['#22c55e', '#111'], borderColor: '#000' }] } });
         }
 
         function showSection(id) {
@@ -301,7 +300,10 @@
             if(id === 'ranking') renderRanking();
         }
 
-        // Funções da Equipe (Dono)
+        function authAdmin() { if(document.getElementById('adminPassInput').value === SENHA_MASTER) { document.getElementById('adminAuth').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); renderStaffList(); } }
+        function showAdminModal() { document.getElementById('modalAdmin').style.display = 'flex'; }
+        function hideAdminModal() { document.getElementById('modalAdmin').style.display = 'none'; }
+        
         function cadastrarEquipe() {
             const n = document.getElementById('newStaffName').value, u = document.getElementById('newStaffUser').value, p = document.getElementById('newStaffPass').value, r = document.getElementById('newStaffRole').value;
             if(!n || !u || !p) return;
@@ -313,33 +315,22 @@
 
         function renderStaffList() {
             const eq = JSON.parse(localStorage.getItem('arx_equipe') || '[]');
-            document.getElementById('staffList').innerHTML = eq.map(e => `<div class="py-2 border-b border-zinc-900 flex justify-between"><span>${e.role}: ${e.name}</span> <span class="text-zinc-700">${e.user}</span></div>`).join('');
+            document.getElementById('staffList').innerHTML = eq.map(e => `<div class="py-2 border-b border-zinc-900 flex justify-between"><span>${e.role}: ${e.name}</span></div>`).join('');
         }
 
         function updateSelects() {
             const eq = JSON.parse(localStorage.getItem('arx_equipe') || '[]');
-            const closers = eq.filter(e => e.role === 'Closer').map(e => `<option value="${e.name}">${e.name}</option>`).join('') || '<option>Nenhum Closer</option>';
-            const sdrs = eq.filter(e => e.role === 'SDR').map(e => `<option value="${e.name}">${e.name}</option>`).join('') || '<option>Nenhum SDR</option>';
-            document.querySelectorAll('.closer-list-source').forEach(s => s.innerHTML = closers);
-            document.querySelectorAll('.sdr-list-source').forEach(s => s.innerHTML = sdrs);
-        }
-
-        function authAdmin() { if(document.getElementById('adminPassInput').value === SENHA_MASTER) { document.getElementById('adminAuth').classList.add('hidden'); document.getElementById('adminPanel').classList.remove('hidden'); renderStaffList(); } }
-        function showAdminModal() { document.getElementById('modalAdmin').style.display = 'flex'; }
-        function hideAdminModal() { document.getElementById('modalAdmin').style.display = 'none'; }
-        
-        // Logica PDF/Reunião (Adaptada da V11)
-        async function loadDefaultPdf() {
-            // URL de exemplo ou carregamento do IndexedDB se houver
-            const url = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf';
-            pdfDoc = await pdfjsLib.getDocument(url).promise;
+            const closers = eq.filter(e => e.role === 'Closer').map(e => `<option value="${e.name}">${e.name}</option>`).join('');
+            const sdrs = eq.filter(e => e.role === 'SDR').map(e => `<option value="${e.name}">${e.name}</option>`).join('');
+            document.querySelectorAll('.closer-list-source').forEach(s => s.innerHTML = closers || '<option>Sem Closer</option>');
+            document.querySelectorAll('.sdr-list-source').forEach(s => s.innerHTML = sdrs || '<option>Sem SDR</option>');
         }
 
         async function renderPage(num) {
-            if(!pdfDoc) await loadDefaultPdf();
+            if(!pdfDoc) return alert("Por favor, adicione o PDF no Painel Master primeiro!");
             const page = await pdfDoc.getPage(num);
             const canvas = document.getElementById('pdfCanvas');
-            const viewport = page.getViewport({ scale: 1.2 });
+            const viewport = page.getViewport({ scale: (window.innerWidth < 768 ? 0.6 : 1.2) });
             canvas.height = viewport.height; canvas.width = viewport.width;
             page.render({ canvasContext: canvas.getContext('2d'), viewport });
             document.getElementById('pageNumDisplay').innerText = num;
@@ -353,7 +344,7 @@
             const leads = JSON.parse(localStorage.getItem('arx_leads') || '[]');
             activeLead = leads.find(l => l.protocolo === prot);
             if(activeLead) { document.getElementById('meetingLogin').classList.add('hidden'); document.getElementById('mainDashboard').style.display = 'flex'; showSection('apresentacao_real'); renderPage(1); }
-            else alert("Protocolo inválido");
+            else alert("Protocolo não encontrado");
         }
 
         function abrirFechamento() { document.getElementById('modalFechamento').style.display = 'flex'; }
@@ -361,6 +352,7 @@
             const leads = JSON.parse(localStorage.getItem('arx_leads') || '[]');
             const idx = leads.findIndex(l => l.id === activeLead.id);
             leads[idx].status = st;
+            leads[idx].statusReuniao = 'Realizada';
             leads[idx].setup = document.getElementById('f_setup').value || 0;
             leads[idx].mensal = document.getElementById('f_mensal').value || 0;
             localStorage.setItem('arx_leads', JSON.stringify(leads));
@@ -376,8 +368,8 @@
                 if(l.status === 'FECHOU') cSt[l.closer] = (cSt[l.closer] || 0) + (parseFloat(l.setup) + parseFloat(l.mensal));
                 sSt[l.sdr] = (sSt[l.sdr] || 0) + 1;
             });
-            document.getElementById('rankingClosers').innerHTML = Object.entries(cSt).sort((a,b) => b[1]-a[1]).map(([n,v]) => `<div class="bg-zinc-900 p-4 rounded-xl flex justify-between"><span>${n}</span><span class="text-gold font-bold">R$ ${v.toLocaleString()}</span></div>`).join('');
-            document.getElementById('rankingSDRs').innerHTML = Object.entries(sSt).sort((a,b) => b[1]-a[1]).map(([n,v]) => `<div class="bg-zinc-900 p-4 rounded-xl flex justify-between"><span>${n}</span><span class="text-gold font-bold">${v} Agend.</span></div>`).join('');
+            document.getElementById('rankingClosers').innerHTML = '<h2 class="text-gold font-black uppercase mb-4 text-xs">Faturamento por Closer</h2>' + Object.entries(cSt).sort((a,b) => b[1]-a[1]).map(([n,v]) => `<div class="bg-zinc-900 p-4 rounded-xl flex justify-between mb-2"><span>${n}</span><span class="text-gold font-bold">R$ ${v.toLocaleString()}</span></div>`).join('');
+            document.getElementById('rankingSDRs').innerHTML = '<h2 class="text-gold font-black uppercase mb-4 text-xs">Agendamentos SDR</h2>' + Object.entries(sSt).sort((a,b) => b[1]-a[1]).map(([n,v]) => `<div class="bg-zinc-900 p-4 rounded-xl flex justify-between mb-2"><span>${n}</span><span class="text-gold font-bold">${v} Agend.</span></div>`).join('');
         }
 
         function renderPipeline() {
@@ -392,8 +384,7 @@
                             <div class="font-black text-white uppercase text-sm">${l.lead}</div>
                         </div>
                     `).join('')}
-                </div>
-            `).join('');
+                </div>`).join('');
         }
     </script>
 </body>
